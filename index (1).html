@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MINI GAS FIELD LEBAK Simulator</title>
+<style>
+:root{--bg:#eef3f1;--paper:#fff;--ink:#17323a;--muted:#667f86;--line:#d5e2e0;--teal:#0b7a75;--aqua:#dff3ee;--orange:#d17a2c;--red:#b4443c;--green:#2f8a4f;--dark:#12313a;font-family:Inter,"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-size:13px}
+header.top{background:linear-gradient(105deg,#0f2d36,#14505a);color:#fff;padding:14px 22px 0}
+header.top h1{margin:0;font-size:20px;letter-spacing:.4px}header.top h1 span{color:#7fe0d2}
+header.top small{color:#b6d3d6;display:block;margin:3px 0 10px;font-size:11.5px;max-width:980px;line-height:1.5}
+.tabbar{display:flex;gap:2px;flex-wrap:wrap}.tabbar button{background:none;border:0;color:#b6d3d6;padding:9px 14px;font-size:12px;cursor:pointer;border-bottom:3px solid transparent;font-family:inherit}
+.tabbar button.on{color:#fff;border-bottom-color:#7fe0d2;font-weight:700}
+.content{padding:14px 18px 40px}.view{display:none}.view.on{display:block}
+.layout{display:grid;grid-template-columns:262px minmax(0,1fr);gap:12px;align-items:start}.below{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}@media(max-width:900px){.below{grid-template-columns:1fr}}
+@media(max-width:1100px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.ph{background:var(--dark);color:#fff;padding:9px 12px}.ph b{font-size:12px;letter-spacing:.5px}.ph small{display:block;color:#9fc3c7;font-size:10.5px;margin-top:2px}
+.pad{padding:10px 12px}
+.grp{font-size:10.5px;font-weight:800;color:var(--teal);letter-spacing:.6px;margin:12px 0 4px;text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:3px}
+.grp:first-child{margin-top:0}
+.ctl{margin:7px 0}.ctl label{display:flex;justify-content:space-between;gap:6px;font-size:11.5px;color:#31525a}
+.ctl label span.u{color:var(--muted);font-size:10.5px}
+.ctl .row{display:flex;gap:6px;align-items:center}.ctl input[type=range]{flex:1;accent-color:var(--teal)}
+.ctl input[type=number]{width:84px;border:1px solid var(--line);border-radius:5px;padding:3px 5px;font-size:12px;font-family:inherit;text-align:right}
+select{border:1px solid var(--line);border-radius:5px;padding:4px 6px;font-family:inherit;font-size:12px;width:100%}
+.btn{background:var(--teal);color:#fff;border:0;border-radius:6px;padding:7px 11px;font-size:12px;cursor:pointer;font-family:inherit}
+.btn.alt{background:#e4efed;color:var(--ink)}.btns{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.stage{padding:8px;background:#f8fcfb}.stage svg{width:100%;height:auto;display:block}
+.plate rect{fill:#fff;stroke:#6aa7a3;stroke-width:1.3}.nt{font-size:11px;font-weight:800;fill:#17323a}.nv{font-size:11px;fill:#0b6b66;font-weight:700}.ns{font-size:9.5px;fill:#6b868c}
+.lb{font-size:9.5px;fill:#41636b;font-weight:600}.sh{font-size:10px;font-weight:800;fill:#12313a;letter-spacing:.5px}.bt{font-size:8px;font-weight:800;fill:#fff}.vt{font-size:9px;font-weight:700;fill:#41636b;text-anchor:middle;letter-spacing:.4px}.ib{font-size:7px;font-weight:800;fill:#17323a}.il{font-size:9px;fill:#0b6b66;font-weight:700}
+.hit{fill:transparent;stroke:none;cursor:pointer}.hit:hover{stroke:#d17a2c;stroke-width:2;stroke-dasharray:6 4;fill:rgba(209,122,44,.05)}.hit.sel{stroke:#d17a2c;stroke-width:2.5;stroke-dasharray:6 4;fill:rgba(209,122,44,.06)}
+.spin{animation:spin 3s linear infinite;transform-box:fill-box;transform-origin:center}.spin.rev{animation-direction:reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bub{animation:rise 3.2s linear infinite}.bub.s{animation-duration:2.4s}.bub.c{animation-duration:4s}.steam{animation:rise2 3.6s linear infinite}
+@keyframes rise{0%{transform:translateY(0);opacity:0}15%{opacity:.85}100%{transform:translateY(-70px);opacity:0}}
+@keyframes rise2{0%{transform:translateY(0) scale(.7);opacity:0}20%{opacity:.8}100%{transform:translateY(-30px) scale(1.4);opacity:0}}
+.drop{animation:drip 1.2s linear infinite}@keyframes drip{0%{transform:translateY(0);opacity:1}100%{transform:translateY(60px);opacity:0}}
+.flame{transform-box:fill-box;transform-origin:50% 100%;animation:fl .5s ease-in-out infinite alternate}@keyframes fl{to{transform:scale(1.15,.82)}}
+.co2c{animation:co2 4s ease-in-out infinite}@keyframes co2{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.drive{animation:drive 14s ease-in-out infinite}@keyframes drive{0%,10%{transform:translateX(0)}45%,62%{transform:translateX(-330px)}95%,100%{transform:translateX(0)}}
+.vib{animation:vib 4s ease-in-out infinite alternate}@keyframes vib{to{transform:translateX(12px)}}
+.drop2{animation:mv 1.6s linear infinite}
+.paused svg *{animation:none!important}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:6px 12px 8px;font-size:11px;color:#4d6870}.legend i{display:inline-block;width:22px;height:5px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.pipe{fill:none;stroke:#a9c9c6;stroke-width:6;stroke-linecap:round}.pipe.gas{stroke:#e0b074}.pipe.sol{stroke:#9bb78f}.pipe.hi{stroke:#d08b3f}.pipe.wt{stroke:#8fc0e3}.pipe.sl{stroke:#b59a6d}.pipe.co2{stroke:#b9c3c6}
+.flow{fill:none;stroke:#fff;stroke-width:3;stroke-dasharray:3 17;animation:mv 1.6s linear infinite;stroke-linecap:round}
+@keyframes mv{to{stroke-dashoffset:-80}}.paused .flow{animation:none}
+.info{padding:10px 12px;border-top:1px solid var(--line);font-size:12px;line-height:1.6}
+.info b{color:var(--teal)}
+.kv{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #e6efee;font-size:12px}.kv span:first-child{color:#4d6870}.kv b{font-size:13.5px}
+.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--orange)}
+.badge{display:inline-block;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:800;margin:4px 0}
+.b-good{background:#dcf2e3;color:#1f6f3b}.b-warn{background:#fdebd3;color:#9a5a12}.b-bad{background:#f7dcd9;color:#8f2f28}
+.chk{display:flex;gap:7px;font-size:11.5px;padding:4px 0;line-height:1.4}.chk i{font-style:normal;font-weight:800;width:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}.card h3{margin:0 0 8px;font-size:13.5px}
+.card p.n{font-size:11px;color:var(--muted);margin:6px 0 0;line-height:1.5}
+table.t{border-collapse:collapse;width:100%;font-size:11.5px}table.t th,table.t td{border:1px solid #dbe7e5;padding:4px 6px;text-align:right}
+table.t th{background:#eaf4f2;text-align:center}table.t td:first-child,table.t th:first-child{text-align:left}
+table.t tr.tot td{font-weight:800;background:#f3f9f8}
+td.neg{background:#f9e3e0;color:#8a2c25}td.pos{background:#e1f3e7;color:#1d6a39}td.base{outline:2px solid var(--orange);outline-offset:-2px}
+canvas{width:100%;display:block}
+.hint{background:#fff7e8;border:1px solid #f0d6a8;border-radius:8px;padding:9px 12px;font-size:11.5px;line-height:1.55;margin-bottom:12px;color:#6a4b12}
+pre.f{background:#f5faf9;border:1px solid #dbe7e5;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7;overflow:auto;font-family:Consolas,"Courier New",monospace;white-space:pre-wrap}
+details summary{cursor:pointer;font-size:11.5px;font-weight:700;color:var(--teal);margin:10px 0 4px}
+.advgrid{display:grid;grid-template-columns:1fr;gap:4px}.advgrid .ctl{margin:3px 0}
+#asmT td{text-align:left!important}</style></head><body>
+<header class="top"><h1>MINI GAS FIELD <span>LEBAK</span> · SIMULATOR</h1>
+<small>Community Bio CNG hub simulator: food waste → biogas → Bio CNG at 250 bar → virtual pipeline → LPG replacement. All results are recalculated live from the inputs and match the Excel model (base case: NPV IDR 1,450.5 million, net emissions 11,439 tCO2e per year). Early stage pre feasibility study, not a final feasibility study.</small>
+<div class="tabbar" id="tabbar"><button data-tab="sim" class="on">01 · Simulator and Process Flow</button><button data-tab="eco">02 · Economics and Sensitivity</button><button data-tab="emi">03 · Emissions</button><button data-tab="met">04 · Method and Formulas</button><button data-tab="asm">05 · Assumptions and Validation</button></div></header>
+<div class="content">
+<section id="sim" class="view on"><div class="layout">
+<aside class="panel"><div class="ph"><b>INPUT PANEL</b><small>Drag or type values</small></div><div class="pad">
+<div class="ctl"><label>Quick scenario</label><select id="preset"><option value="dasar">Base (same as Excel)</option><option value="kons">Conservative (illustrative)</option><option value="opt">Optimistic (illustrative)</option></select></div>
+<div class="btns"><button class="btn alt" id="reset">Reset to base</button></div>
+<div id="controls"></div>
+<details><summary>Advanced parameters</summary><div class="advgrid" id="adv"></div></details>
+</div></aside>
+<div><div class="panel"><div class="ph"><b>ILLUSTRATED PROCESS DIAGRAM</b><small>Click any equipment to see its explanation and formulas. All numbers in the diagram are recalculated from the input panel.</small></div>
+<div class="stage" id="stage"><svg id="pfd" viewBox="0 16 1320 820"></svg></div>
+<div class="legend"><span><i style="background:#e0a85a"></i>Biogas and Bio CNG</span><span><i style="background:#b59a6d"></i>Slurry and digestate</span><span><i style="background:#8fc0e3"></i>Process water</span><span><i style="background:#b9c3c6"></i>Biogenic CO2</span><span><i style="background:#9aa9ac"></i>No project baseline path</span></div>
+<div class="btns" style="padding:0 12px"><button class="btn alt" id="anim">Pause flow animation</button></div>
+<div class="info" id="nodeinfo"></div></div>
+<div class="below"><div class="panel"><div class="ph"><b>CALCULATION RESULTS</b><small>Updated automatically</small></div><div class="pad" id="results"></div></div></div></div>
+</div></section>
+<section id="eco" class="view"><div class="hint"><b>Scope:</b> project cash flow before tax, constant prices, no working capital and no salvage value. The orange outline in the matrices marks the base case. Red cells mean negative NPV.</div>
+<div class="grid2"><div class="card"><h3>CAPEX (IDR million)</h3><div id="capexT"></div></div><div class="card"><h3>OPEX and revenue in a full year (IDR million per year)</h3><div id="opexT"></div></div></div>
+<div class="grid2"><div class="card"><h3>Net and cumulative cash flow (IDR million)</h3><canvas id="cfChart" height="260"></canvas></div><div class="card"><h3>Cash flow table (IDR million)</h3><div id="cfT" style="overflow:auto"></div></div></div>
+<div class="card"><h3>NPV sensitivity (IDR million)</h3><div class="grid2"><div><b>Haul distance and selling price</b><div id="m1"></div></div><div><b>CAPEX multiplier and selling price</b><div id="m2"></div></div></div><div style="margin-top:12px"><b>Digestate sold and BUM Desa service fee (the key to feasibility)</b><div id="m3"></div></div></div>
+<div class="grid2"><div class="card"><h3>Tornado: NPV change by input (IDR million)</h3><canvas id="tor" height="330"></canvas><p class="n">Each bar shows the NPV when one input is moved to its lower bound (blue) and its upper bound (orange), with all others held at the base value. The numbers on the right are lower bound / upper bound.</p></div>
+<div class="card"><h3>Monte Carlo (3,000 trials)</h3><div class="btns"><button class="btn" id="mc">Run simulation</button></div><div id="mcres" style="font-size:12px;line-height:1.7"></div><canvas id="hist" height="230"></canvas><p class="n">Inputs are drawn from triangular distributions (lower bound, most likely, upper bound) for: yield, parasitic energy, methane leakage, CAPEX multiplier, digestate sold, service fee, price discount, distance, scrubber cost, pressure reduction station cost, operating days, digestate price.</p></div></div>
+</section>
+<section id="emi" class="view"><div class="hint"><b>Calculation boundary:</b> CO2 from burning Bio CNG is not counted (biogenic carbon). N2O from digestate and the fertilizer it displaces are excluded. Results depend on landfill conditions (MCF) that have not been measured in Lebak.</div>
+<div class="grid2"><div class="card"><h3>Emission reduction by landfill scenario (tCO2e per year)</h3><div id="emT"></div></div><div class="card"><h3>Reduction breakdown (scenario per the MCF input)</h3><canvas id="emChart" height="260"></canvas></div></div>
+<div class="card"><h3>Net reduction sensitivity: MCF and DOC (tCO2e per year)</h3><div id="emM"></div></div></section>
+<section id="met" class="view"><div class="card"><h3>Formulas used by the simulator</h3><pre class="f" id="formulas"></pre></div></section>
+<section id="asm" class="view"><div class="hint"><b>How to read:</b> Given means a figure from agreed data. Assumption means the authors' estimate that should be replaced by pilot data, vendor quotations, or surveys. Added sources are listed in the essay references.</div><div class="card"><h3>Status of key inputs</h3><div id="asmT"></div></div><div class="card"><h3>Model limitations</h3><div id="lim"></div></div></section>
+</div>
+<script>const DEF={food:186.18,koleksi:0.20,hari:330,yield:95,ch4f:0.60,par:0.3235,vs:0.25,olr:2.0,hrt:30,elis:2994,kwhup:0.28,
+kgeo:5250,neto:0.85,tarif:15000,naik:0.15,jarak:75,ntrl:2,plpg:15589,disk:0.125,lpgkg:0.81,digy:0.198,digs:0.50,digp:2000,digc:400,fee:100000,
+disc:0.10,kurs:20700,umk:3330010,nker:18,fgaji:1.8,bpjs:0.10,rm:0.025,ra:0.005,adm:150,kimia:300,ipal:250,ogen:300,
+cdig:1.5,cbg:2500,cmic:800,escr:2000,ccomp:3500,etrl:222200,cfl:1000,csip:2000,cdew:800,kont:0.08,mult:1.0,r1:0.7,r2:0.9,
+nbuy:4,cprs:150,byp:1,sx:0.6,mcf:0.6,doc:0.15,docf:0.5,ff:0.5,gwp:28,rho:0.717,leak:0.03,ncv:47.3,efl:63.1,efd:74.1,ekm:4.61};
+function compute(p){
+ const o={};
+ o.qs=p.food*p.koleksi; o.qch4=o.qs*p.yield; o.qbg=o.qch4/p.ch4f; o.qbgh=o.qbg/24; o.qk=o.qch4*(1-p.leak)*(1-p.par); o.qlost=o.qch4*p.leak; o.qgen=o.qch4*(1-p.leak)*p.par; o.qbgs=o.qbg*(1-p.leak)*(p.byp?(1-p.par):1); o.qscrh=o.qbgs/24; o.qbgg=o.qbg*(1-p.leak)*p.byp*p.par;
+ o.vol=o.qs*1000*p.vs/p.olr; o.slur=o.vol/p.hrt; o.kn=p.kgeo*p.neto; o.trip=o.qk/o.kn;
+ o.cang=2*p.jarak*p.tarif*(1+p.naik)/o.kn; o.pj=p.plpg*(1-p.disk); o.hemat=p.plpg-o.pj;
+ o.lpgd=o.qk*p.lpgkg; o.tbg=o.lpgd/12; o.eup=p.kwhup*o.qbgs; o.qwat=o.slur-p.food*p.koleksi; o.elain=p.elis-o.eup;
+ o.qv=o.qk*p.hari; o.wy=o.qs*p.hari; o.digt=o.wy*p.digy*p.digs;
+ const i=[o.vol*p.cdig,p.cbg,p.cmic,p.escr*o.qbgh*Math.pow(o.qscrh/o.qbgh,p.sx)*p.kurs/1e6,p.ccomp,p.ntrl*p.etrl*p.kurs/1e6,p.cfl,p.csip,p.cdew,p.nbuy*p.cprs];
+ o.items=i; o.isub=i.reduce((a,b)=>a+b,0); o.capex=o.isub*(1+p.kont)*p.mult;
+ o.btk=p.nker*p.umk*p.fgaji*13*(1+p.bpjs)/1e6; o.bpem=p.rm*o.capex; o.basr=p.ra*o.capex;
+ o.bfix=o.btk+o.bpem+o.basr+p.adm+p.kimia+p.ipal;
+ o.bang=o.qv*o.cang/1e6; o.bfee=o.wy*p.fee/1e6; o.bgen=p.elis*p.hari*p.ogen/1e6; o.bdig=o.digt*1000*p.digc/1e6;
+ o.bvar=o.bang+o.bfee+o.bgen+o.bdig;
+ o.rgas=o.qv*o.pj/1e6; o.rdig=o.digt*1000*p.digp/1e6; o.rtot=o.rgas+o.rdig; o.ebs=o.rtot-o.bvar-o.bfix;
+ o.mrg=o.ebs/o.rtot; o.ctun=(o.bfix+o.bvar)*1e6/o.qv;
+ const f=[0,p.r1,p.r2,1,1,1,1,1,1,1,1]; o.f=f;
+ o.cf=[];o.cum=[];o.pv=[];o.cpv=[];o.eb=[];let c=0,cp=0;
+ for(let t=0;t<=10;t++){
+  const eb=t===0?0:f[t]*(o.rtot-o.bvar)-o.bfix; const cf=eb-(t===0?o.capex:0);
+  const df=1/Math.pow(1+p.disc,t); c+=cf; cp+=cf*df;
+  o.eb.push(eb);o.cf.push(cf);o.cum.push(c);o.pv.push(cf*df);o.cpv.push(cp);}
+ o.npv=o.cpv[10]; o.pir=(o.npv+o.capex)/o.capex;
+ o.avar=0;o.atet=0;for(let t=1;t<=10;t++){const df=1/Math.pow(1+p.disc,t);o.avar+=f[t]*df;o.atet+=df;}
+ o.pb=null;o.pbd=null;
+ for(let t=1;t<=10;t++){ if(o.pb===null&&o.cum[t-1]<0&&o.cum[t]>=0)o.pb=(t-1)+(-o.cum[t-1])/o.cf[t];
+  if(o.pbd===null&&o.cpv[t-1]<0&&o.cpv[t]>=0)o.pbd=(t-1)+(-o.cpv[t-1])/o.pv[t];}
+ o.irr=irr(o.cf);
+ o.mlain=o.rdig-o.bfee-o.bgen-o.bdig; o.blain=o.bfix-o.bpem-o.basr;
+ o.pimp=o.cang+((o.capex+o.atet*o.bfix)/o.avar-o.mlain)*1e6/o.qv;
+ // emisi
+ o.m_ch4=o.wy*p.mcf*p.doc*p.docf*p.ff*16/12; o.e_ch4=o.m_ch4*p.gwp;
+ o.prod=o.qch4*p.hari*p.rho/1000; o.e_leak=o.prod*p.leak*p.gwp;
+ o.trips=o.qv/o.kn; o.e_trk=o.trips*2*p.jarak*p.ekm*3.6/1000*p.efd/1000;
+ o.lpgt=o.qv*p.lpgkg/1000; o.e_lpg=o.lpgt*1000*p.ncv/1000*p.efl/1000;
+ o.e_gross=o.e_ch4+o.e_lpg; o.e_net=o.e_gross-o.e_leak-o.e_trk;
+ return o;}
+function irr(cf){let lo=-0.9,hi=1;const g=r=>cf.reduce((s,v,t)=>s+v/Math.pow(1+r,t),0);
+ if(g(lo)*g(hi)>0)return null;for(let k=0;k<80;k++){const m=(lo+hi)/2;if(g(lo)*g(m)<=0)hi=m;else lo=m;}return (lo+hi)/2;}
+function npvOf(p,over){return compute(Object.assign({},p,over)).npv;}
+function solve(p,key,lo,hi){let a=lo,b=hi,fa=npvOf(p,{[key]:a}),fb=npvOf(p,{[key]:b});if(fa*fb>0)return null;
+ for(let k=0;k<60;k++){const m=(a+b)/2,fm=npvOf(p,{[key]:m});if(fa*fm<=0){b=m;fb=fm}else{a=m;fa=fm}}return (a+b)/2;}
+
+const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
+let P=Object.assign({},DEF);let O=compute(P);
+const nf=(v,d=0)=>(v===null||v===undefined||isNaN(v))?'n/a':v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pc=(v,d=1)=>nf(v*100,d)+'%';
+// ---------- controls ----------
+const CT=[
+['Supply',[['koleksi','Food waste collection rate','%',5,40,1,100],['food','Lebak food waste generation','tons/day',50,400,0.01,1],['hari','Operating days per year','days',250,365,1,1]]],
+['Biogas',[['yield','Methane yield','Nm3 CH4/ton',60,130,1,1],['ch4f','CH4 content of biogas','%',50,70,1,100],['par','Plant parasitic energy','%',20,45,0.1,100],['leak','Methane leakage and slip','%',0,8,0.5,100]]],
+['Distribution (virtual pipeline)',[['jarak','One way haul distance','km',10,200,1,1],['tarif','Truck rate','IDR/km',8000,30000,500,1],['naik','Logistics cost increase','%',0,40,1,100],['ntrl','Number of composite trailers','units',1,4,1,1]]],
+['Price and market',[['disk','Price discount to LPG 12 kg parity','%',0,30,0.5,100],['digs','Digestate sold','%',0,100,1,100],['digp','Digestate price','IDR/kg',500,4000,50,1],['fee','BUM Desa service fee','IDR/ton',0,300000,5000,1]]],
+['CAPEX',[['mult','CAPEX multiplier','times',0.7,1.6,0.01,1],['escr','Water scrubber','EUR/(Nm3/h)',1000,6000,100,1],['kurs','Exchange rate','IDR/EUR',15000,25000,100,1],['cdig','Complete digester','IDR million/m3',0.8,3,0.05,1],['nbuy','Number of buyer sites','units',1,10,1,1],['cprs','Pressure reduction station per site','IDR million',0,500,10,1]]],
+['Finance',[['disc','Discount rate','%',5,15,0.5,100],['r1','Year 1 production','%',30,100,5,100],['r2','Year 2 production','%',50,100,5,100]]],
+['Emissions',[['mcf','Landfill MCF','',0.4,0.8,0.2,1],['doc','Food waste DOC','',0.08,0.2,0.01,1],['gwp','Methane GWP100','',25,34,1,1]]]];
+const ADV=[['byp','Genset and boiler use raw biogas (1 yes, 0 no)','0 or 1'],['sx','Scrubber cost scale exponent','unitless'],['vs','VS content','fraction'],['olr','Organic loading rate OLR','kg VS/m3/day'],['hrt','HRT','days'],['elis','Total plant electricity','kWh/day'],['kwhup','Upgrading and compression electricity','kWh/Nm3'],['kgeo','Trailer capacity','Nm3'],['neto','Net payload ratio','fraction'],['plpg','LPG 12 kg parity value','IDR/Nm3'],['lpgkg','LPG equivalence','kg/Nm3'],['digy','Digestate from feed mass','fraction'],['digc','Digestate processing cost','IDR/kg'],['umk','Lebak minimum wage 2026','IDR/month'],['nker','Plant workers','persons'],['fgaji','Salary factor','times'],['bpjs','BPJS burden','fraction'],['rm','Maintenance','fraction of CAPEX'],['ra','Insurance','fraction of CAPEX'],['adm','Administration','IDR million/year'],['kimia','Water and chemicals','IDR million/year'],['ipal','WWTP','IDR million/year'],['ogen','Genset O&M','IDR/kWh'],['cbg','Boiler and genset','IDR million'],['cmic','Microaeration and iron sponge','IDR million'],['ccomp','Compressor and filling','IDR million'],['etrl','Composite trailer','EUR/unit'],['cfl','Flare and instrumentation','IDR million'],['csip','Civil works','IDR million'],['cdew','Dewatering','IDR million'],['kont','Contingency','fraction'],['docf','DOCf','fraction'],['ff','CH4 fraction of landfill gas','fraction'],['rho','CH4 density','kg/Nm3'],['ncv','LPG calorific value','MJ/kg'],['efl','LPG emission factor','kg CO2/GJ'],['efd','Diesel emission factor','kg CO2/GJ'],['ekm','Truck energy per km','kWh/km']];
+function mkCtl(k,label,unit,min,max,step,sc,adv){const d=document.createElement('div');d.className='ctl';
+ const id='c_'+k;d.innerHTML=`<label><span>${label}</span><span class="u">${unit}</span></label><div class="row">${adv?'':`<input type="range" id="${id}_r" min="${min}" max="${max}" step="${step}">`}<input type="number" id="${id}" step="${adv?'any':step}"></div>`;
+ return d;}
+const ctlBox=$('#controls');
+CT.forEach(g=>{const h=document.createElement('div');h.className='grp';h.textContent=g[0];ctlBox.appendChild(h);g[1].forEach(c=>ctlBox.appendChild(mkCtl(...c)));});
+ADV.forEach(a=>$('#adv').appendChild(mkCtl(a[0],a[1],a[2],0,0,0,1,true)));
+const SC={};CT.forEach(g=>g[1].forEach(c=>SC[c[0]]=c[6]));
+function syncInputs(){Object.keys(P).forEach(k=>{const n=$('#c_'+k);if(!n)return;const s=SC[k]||1;const v=P[k]*s;const r=$('#c_'+k+'_r');
+ if(document.activeElement!==n)n.value=Math.round(v*1e6)/1e6;if(r)r.value=v;});}
+function bind(){Object.keys(P).forEach(k=>{const n=$('#c_'+k);if(!n)return;const s=SC[k]||1;const r=$('#c_'+k+'_r');
+ const upd=v=>{v=parseFloat(v);if(isNaN(v))return;P[k]=v/s;update(true);};
+ n.addEventListener('input',()=>{upd(n.value);if(r)r.value=n.value;});if(r)r.addEventListener('input',()=>{n.value=r.value;upd(r.value);});});}
+// ---------- ILLUSTRATED PROCESS DIAGRAM ----------
+const CS='#41636b';
+const cyl=(x,y,w,h,ry,fill,inner)=>{const b=y+h-ry;return `<path d="M${x} ${y+ry}V${b}A${w/2} ${ry} 0 0 0 ${x+w} ${b}V${y+ry}Z" fill="${fill||'url(#gSteel)'}" stroke="${CS}" stroke-width="1.6"/>${inner||''}<ellipse cx="${x+w/2}" cy="${y+ry}" rx="${w/2}" ry="${ry}" fill="#f3f8f8" stroke="${CS}" stroke-width="1.6"/>`;};
+const ib=(x,y,tag,lab)=>`<circle cx="${x}" cy="${y}" r="9" fill="#fff" stroke="${CS}" stroke-width="1.4"/><text x="${x}" y="${y+3}" text-anchor="middle" class="ib">${tag}</text>${lab?`<text x="${x+13}" y="${y+3}" class="il">${lab}</text>`:''}`;
+const plate=(x,y,w,t,v,s)=>`<g class="plate"><rect x="${x}" y="${y}" width="${w}" height="48" rx="6"/><text x="${x+8}" y="${y+15}" class="nt">${t}</text><text x="${x+8}" y="${y+30}" class="nv">${v}</text><text x="${x+8}" y="${y+43}" class="ns">${s}</text></g>`;
+const band=(x,y,w,h,l)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7" fill="#f2f8f7" stroke="#cfe0de"/><path d="M${x} ${y+18}V${y+7}Q${x} ${y} ${x+7} ${y}H${x+w-7}Q${x+w} ${y} ${x+w} ${y+7}V${y+18}Z" fill="#d6e9e5"/><text x="${x+8}" y="${y+13}" class="sh">${l}</text>`;
+const PL=(d,c)=>`<path class="pipe ${c||''}" d="${d}"/><path class="flow" d="${d}"/>`;
+const txt=(x,y,s,c,a)=>`<text x="${x}" y="${y}" class="${c||'lb'}"${a?` text-anchor="${a}"`:''}>${s}</text>`;
+const flame=(x,y,col,sc)=>`<g transform="translate(${x},${y}) scale(${sc||1})"><g class="flame"><path d="M0 0C4-5 4-9 0-14C-4-9-4-5 0 0Z" fill="${col||'#e8892f'}"/><path d="M0 0C2-3 2-5 0-8C-2-5-2-3 0 0Z" fill="#fff3b0"/></g></g>`;
+const bubbles=(x0,x1,y,n,cls)=>{let s='';for(let i=0;i<n;i++){const x=x0+(x1-x0)*((i*0.37+0.13)%1);s+=`<circle class="${cls||'bub'}" style="animation-delay:${(i*0.7).toFixed(1)}s" cx="${x.toFixed(1)}" cy="${y}" r="${2+(i%3)}" fill="#fff" stroke="#b9a27a" opacity="0"/>`;}return s;};
+
+function artSrc(){let s='';
+ // dapur SPPG
+ s+=`<g transform="translate(18,60)"><rect x="0" y="22" width="98" height="46" fill="#f6e6d2" stroke="#8a6b52" stroke-width="1.4"/><rect x="72" y="2" width="11" height="22" fill="#a9684a" stroke="#8a4f33"/><polygon points="-5,22 49,0 103,22" fill="#c97b55" stroke="#8a4f33" stroke-width="1.4"/><rect x="8" y="32" width="22" height="16" fill="#bfe0f2" stroke="#52798a"/><rect x="68" y="32" width="22" height="16" fill="#bfe0f2" stroke="#52798a"/><rect x="40" y="40" width="18" height="28" fill="#7a5a45"/><text x="49" y="18" text-anchor="middle" class="bt">SPPG</text><circle class="steam" style="animation-delay:0s" cx="77" cy="-2" r="3.5" fill="#fff" stroke="#c7d6d9" opacity="0"/><circle class="steam" style="animation-delay:1.4s" cx="80" cy="-2" r="3" fill="#fff" stroke="#c7d6d9" opacity="0"/></g>`;
+ // TPS3R
+ s+=`<g transform="translate(126,74)"><line x1="6" y1="12" x2="6" y2="54" stroke="#6c8f99" stroke-width="3"/><line x1="88" y1="12" x2="88" y2="54" stroke="#6c8f99" stroke-width="3"/><polygon points="-2,14 96,14 86,0 8,0" fill="#6c8f99" stroke="#41636b"/><rect x="14" y="32" width="20" height="22" fill="#3d9a63" stroke="#25623e"/><rect x="12" y="28" width="24" height="5" fill="#2c7a4b"/><rect x="40" y="32" width="20" height="22" fill="#d9a441" stroke="#8d6a1e"/><rect x="38" y="28" width="24" height="5" fill="#b8892d"/><rect x="66" y="32" width="20" height="22" fill="#4b86c4" stroke="#2c5a8c"/><rect x="64" y="28" width="24" height="5" fill="#3a6da6"/><line x1="-2" y1="54" x2="96" y2="54" stroke="#8aa1a8" stroke-width="2"/></g>`;
+ s+=txt(66,142,'SPPG kitchen','lb','middle')+txt(172,142,'TPS3R and market','lb','middle');
+ // truk pengumpul
+ s+=`<g class="vib"><g transform="translate(30,170)"><rect x="0" y="4" width="68" height="38" rx="3" fill="#4f9a6b" stroke="#2f6b49" stroke-width="1.4"/><text x="34" y="27" text-anchor="middle" class="bt">ORGANIC</text><path d="M70 16H94L104 28V42H70Z" fill="#f0f4f4" stroke="#41636b" stroke-width="1.4"/><polygon points="76,20 92,20 98,29 76,29" fill="#bfe0f2" stroke="#52798a"/><circle cx="18" cy="45" r="7.5" fill="#34464b"/><circle cx="18" cy="45" r="3" fill="#cfd8da"/><circle cx="88" cy="45" r="7.5" fill="#34464b"/><circle cx="88" cy="45" r="3" fill="#cfd8da"/></g></g>`;
+ s+=txt(82,246,'Joint BUM Desa truck','lb','middle');
+ // jalan
+ s+=`<rect x="8" y="224" width="326" height="7" fill="#9aa9ac"/><line x1="8" y1="227.5" x2="334" y2="227.5" stroke="#fff" stroke-dasharray="8 6"/>`;
+ return s;}
+
+function artHub(){let s='';
+ // jembatan timbang
+ s+=`<polygon points="244,224 252,217 326,217 334,224" fill="#8aa1a8" stroke="${CS}"/><rect x="252" y="217" width="74" height="4" fill="#cfdadc"/><rect x="338" y="204" width="34" height="20" rx="2" fill="#17323a"/><text x="355" y="218" text-anchor="middle" fill="#7ff0b6" style="font:700 8px Consolas,monospace">${nf(O.qs,1)} t</text><line x1="355" y1="224" x2="355" y2="229" stroke="${CS}" stroke-width="2"/>`;
+ s+=txt(290,246,'Weighbridge','lb','middle');
+ // hopper dan pencacah
+ s+=`<g transform="translate(250,122)"><polygon points="0,0 76,0 58,32 18,32" fill="url(#gSteel)" stroke="${CS}" stroke-width="1.6"/><rect x="14" y="32" width="48" height="54" rx="3" fill="#8aa1a8" stroke="${CS}" stroke-width="1.6"/><g class="spin"><circle cx="30" cy="58" r="11" fill="#dfe8ea" stroke="${CS}" stroke-width="1.4"/><circle cx="30" cy="58" r="11" fill="none" stroke="#41636b" stroke-width="4" stroke-dasharray="3 3.2"/><circle cx="30" cy="58" r="2.5" fill="${CS}"/></g><g class="spin rev"><circle cx="46" cy="58" r="11" fill="#dfe8ea" stroke="${CS}" stroke-width="1.4"/><circle cx="46" cy="58" r="11" fill="none" stroke="#41636b" stroke-width="4" stroke-dasharray="3 3.2"/><circle cx="46" cy="58" r="2.5" fill="${CS}"/></g><rect x="62" y="44" width="20" height="26" rx="3" fill="#4a7c86" stroke="${CS}"/><path d="M66 50h12M66 56h12M66 62h12" stroke="#a6cbd1"/></g>`;
+ s+=txt(288,116,'Hopper and shredder','lb','middle');
+ // pompa
+ s+=`<circle cx="338" cy="198" r="10" fill="#fff" stroke="${CS}" stroke-width="1.6"/><polygon points="332,192 332,204 346,198" fill="#8aa1a8" stroke="${CS}"/>`;
+ // tangki slurry
+ s+=cyl(366,96,76,120,10,'url(#gSteel)',`<path d="M366 128V206A38 10 0 0 0 442 206V128Z" fill="#c9b48a" opacity=".85"/>`);
+ s+=`<line x1="404" y1="84" x2="404" y2="200" stroke="${CS}" stroke-width="2.4"/><rect x="392" y="72" width="24" height="14" rx="2" fill="#4a7c86" stroke="${CS}"/><g class="spin"><rect x="384" y="176" width="40" height="5" rx="2" fill="${CS}"/></g>`;
+ s+=bubbles(376,432,200,3,'bub s');
+ s+=txt(404,66,'Slurry tank','lb','middle');
+ return s;}
+
+function artDig(){let s='';
+ const x=486,w=176,y=112,h=150,ry=14;
+ // badan dan cairan
+ s+=cyl(x,y,w,h,ry,'url(#gSteel)',`<path d="M${x} ${y+30}V${y+h-ry}A${w/2} ${ry} 0 0 0 ${x+w} ${y+h-ry}V${y+30}Z" fill="url(#gSlurry)"/><ellipse cx="${x+w/2}" cy="${y+30}" rx="${w/2}" ry="${ry}" fill="#d9c79f" opacity=".9"/>`);
+ s+=bubbles(x+20,x+w-20,y+h-18,7,'bub b');
+ // pemanas coil
+ s+=`<polyline points="${x+10},${y+50} ${x+26},${y+60} ${x+10},${y+72} ${x+26},${y+82} ${x+10},${y+94} ${x+26},${y+104} ${x+10},${y+116} ${x+26},${y+126}" fill="none" stroke="#d86a4e" stroke-width="2.2"/>`;
+ // agitator
+ s+=`<line x1="574" y1="64" x2="574" y2="${y+h-24}" stroke="${CS}" stroke-width="3"/><g class="spin"><rect x="552" y="${y+h-28}" width="44" height="5" rx="2" fill="${CS}"/></g><g class="spin"><rect x="556" y="${y+70}" width="36" height="4" rx="2" fill="${CS}"/></g>`;
+ // kubah penampung gas
+ s+=`<path d="M${x} ${y}A${w/2} 46 0 0 1 ${x+w} ${y}Z" fill="url(#gDome)" stroke="#b9762e" stroke-width="1.8"/><path d="M${x+14} ${y-10}A${w/2-14} 36 0 0 1 ${x+w-14} ${y-10}" fill="none" stroke="#fff" opacity=".5" stroke-width="2"/>`;
+ s+=`<rect x="560" y="48" width="28" height="16" rx="3" fill="#4a7c86" stroke="${CS}"/>`;
+ const hl='paint-order:stroke;stroke:#d9c79f;stroke-width:3px;';
+ s+=`<text x="${x+w/2+20}" y="${y+104}" text-anchor="middle" style="${hl}font:800 15px Inter,Arial,sans-serif;fill:#3a2f1b">${nf(O.vol,0)} m3</text><text x="${x+w/2+20}" y="${y+118}" text-anchor="middle" style="${hl}font:600 9.5px Inter,Arial,sans-serif;fill:#3a2f1b">HRT ${nf(P.hrt,0)} days · OLR ${nf(P.olr,1)}</text><text x="${x+w/2+20}" y="${y+130}" text-anchor="middle" style="${hl}font:600 9.5px Inter,Arial,sans-serif;fill:#3a2f1b">Mesophilic CSTR</text>`;
+ s+=txt(x+w/2,y-20,'Gas holder','lb','middle');
+ // blower mikroaerasi
+ s+=`<g transform="translate(690,150)"><circle cx="16" cy="16" r="15" fill="#fff" stroke="${CS}" stroke-width="1.6"/><g class="spin"><path d="M16 16L16 4A12 12 0 0 1 26 10Z M16 16L28 16A12 12 0 0 1 22 26Z M16 16L16 28A12 12 0 0 1 6 22Z M16 16L4 16A12 12 0 0 1 10 6Z" fill="#8fc0e3" stroke="#41636b" stroke-width=".8"/></g><circle cx="16" cy="16" r="2.4" fill="${CS}"/></g>`;
+ s+=txt(706,196,'Blower','lb','middle')+txt(706,206,'microaeration','lb','middle');
+ s+=PL('M706 150V100H660','wt');
+ // gas keluar dan instrumen
+ s+=PL('M648 90H800V100','gas')+PL('M502 88H456V500H262','gas');
+ s+=ib(722,90,'FT','')+txt(742,114,nf(O.qbgs,0),'il','middle')+txt(742,124,'Nm3/day','lb','middle');
+ s+=ib(486,150,'TT','');
+ return s;}
+
+function artPre(){let s='';
+ s+=cyl(770,102,62,148,9,'url(#gSteel)',`<rect x="776" y="130" width="50" height="96" fill="url(#pDots)" stroke="#8a5a3a" stroke-width=".8"/>`);
+ s+=`<text transform="translate(805,200) rotate(-90)" class="vt" style="paint-order:stroke;stroke:#d9a67a;stroke-width:3px;fill:#3a2412">IRON SPONGE</text>`;
+ s+=PL('M826 236H850V262H945V250','gas');
+ s+=ib(850,214,'AT','H2S');
+ return s;}
+
+function artScr(){let s='';
+ s+=cyl(910,58,70,192,10,'url(#gSteel)',`<rect x="916" y="100" width="58" height="110" fill="url(#pPack)" stroke="#6f8d96" stroke-width=".8"/><rect x="911" y="214" width="68" height="30" fill="#8fc0e3" opacity=".8"/>`);
+ s+=`<polygon points="945,82 937,98 953,98" fill="#8fc0e3" stroke="${CS}"/>`;
+ for(let i=0;i<4;i++)s+=`<circle class="drop" style="animation-delay:${i*0.35}s" cx="${939+i*4}" cy="102" r="1.8" fill="#4a90c2"/>`;
+ s+=`<text transform="translate(962,160) rotate(-90)" class="vt" style="fill:#31525a;paint-order:stroke;stroke:#fff;stroke-width:3px">WATER SCRUBBER</text>`;
+ // tangki air dan pompa
+ s+=cyl(994,190,46,60,8,'url(#gTankW)','');
+ s+=`<circle cx="1010" cy="168" r="9" fill="#fff" stroke="${CS}" stroke-width="1.6"/><polygon points="1004,162 1004,174 1016,168" fill="#8fc0e3" stroke="${CS}"/>`;
+ s+=PL('M980 236H994','wt')+PL('M1010 159V92H980','wt');
+ s+=PL('M1034 192V150','co2');
+ s+=`<g class="co2c"><ellipse cx="1030" cy="138" rx="13" ry="7" fill="#e6ebec" stroke="#9aa9ac"/><ellipse cx="1021" cy="143" rx="8" ry="5" fill="#e6ebec" stroke="#9aa9ac"/><ellipse cx="1040" cy="143" rx="8" ry="5" fill="#e6ebec" stroke="#9aa9ac"/></g>`+txt(1040,112,'Biogenic','lb','middle')+txt(1040,122,'CO2','lb','middle');
+ s+=PL('M945 58V50H1088V124','gas');
+ s+=ib(945,40,'AT','CH4')+txt(958,38,'','il');
+ return s;}
+
+function artCmp(){let s='';
+ // pengering
+ s+=cyl(1066,124,44,126,8,'url(#gSteel)','')+`<text transform="translate(1092,190) rotate(-90)" class="vt" style="fill:#31525a">GAS DRYER</text>`;
+ s+=PL('M1088 250V262H1146V250','gas');
+ // kompresor
+ s+=`<g transform="translate(1130,142)"><rect x="-4" y="104" width="176" height="10" rx="2" fill="#546e75"/><rect x="0" y="48" width="66" height="56" rx="8" fill="url(#gMotor)" stroke="${CS}" stroke-width="1.6"/><path d="M8 54v44M16 54v44M24 54v44M32 54v44M40 54v44M48 54v44" stroke="#2f6e6b" stroke-width="1.2"/><rect x="66" y="68" width="12" height="16" fill="#8aa1a8" stroke="${CS}"/><rect x="78" y="40" width="70" height="64" rx="4" fill="url(#gSteel)" stroke="${CS}" stroke-width="1.6"/><rect x="88" y="14" width="18" height="28" rx="2" fill="#cfdadc" stroke="${CS}" stroke-width="1.4"/><rect x="118" y="14" width="18" height="28" rx="2" fill="#cfdadc" stroke="${CS}" stroke-width="1.4"/><path d="M92 14h10M122 14h10M92 20h10M122 20h10M92 26h10M122 26h10" stroke="${CS}"/><g class="spin"><circle cx="113" cy="76" r="17" fill="#e9f0f1" stroke="${CS}" stroke-width="1.6"/><path d="M113 60V92M97 76H129M101 64L125 88M125 64L101 88" stroke="${CS}" stroke-width="1.6"/></g><circle cx="113" cy="76" r="3.5" fill="${CS}"/><circle cx="26" cy="14" r="0" /></g>`;
+ s+=`<g transform="translate(1272,118)"><circle cx="16" cy="16" r="15" fill="#fff" stroke="${CS}" stroke-width="1.6"/><path d="M5 22A12 12 0 0 1 27 22" fill="none" stroke="#d17a2c" stroke-width="2.4"/><line x1="16" y1="16" x2="25" y2="9" stroke="#b4443c" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="16" r="2" fill="${CS}"/></g>`+txt(1288,160,'250 bar','lb','middle');
+ s+=PL('M1300 232H1308V368H1290','gas');
+ s+=txt(1196,128,'Compressor 250 bar','lb','middle');
+ return s;}
+
+function artSto(){let s='';
+ // rak cascade
+ s+=`<rect x="1186" y="382" width="116" height="98" rx="3" fill="none" stroke="#546e75" stroke-width="1.6"/><rect x="1182" y="480" width="124" height="6" rx="2" fill="#546e75"/>`;
+ for(let i=0;i<3;i++){const x=1194+i*35;s+=`<rect x="${x}" y="392" width="28" height="84" rx="14" fill="url(#gTube)" stroke="${CS}" stroke-width="1.4"/><path d="M${x+14} 376V392" stroke="${CS}" stroke-width="2.4"/>`;}
+ s+=PL('M1208 376H1308','gas');
+ s+=`<g transform="translate(1160,396)"><circle cx="12" cy="12" r="11" fill="#fff" stroke="${CS}" stroke-width="1.4"/><path d="M4 16A9 9 0 0 1 20 16" fill="none" stroke="#d17a2c" stroke-width="2"/><line x1="12" y1="12" x2="18" y2="7" stroke="#b4443c" stroke-width="1.8"/></g>`;
+ s+=txt(1244,366,'Cascade 250 bar','lb','middle');
+ // dispenser
+ s+=`<g transform="translate(1126,432)"><rect x="0" y="0" width="30" height="66" rx="4" fill="#d17a2c" stroke="#8a4f1a" stroke-width="1.4"/><rect x="5" y="7" width="20" height="14" rx="2" fill="#17323a"/><text x="15" y="18" text-anchor="middle" fill="#7ff0b6" style="font:700 7px Consolas,monospace">CNG</text><path d="M30 34Q44 38 40 52" fill="none" stroke="#17323a" stroke-width="2.4"/></g>`;
+ s+=PL('M1244 486V496H1141V500','gas');
+ s+=`<polygon points="1301,340 1315,340 1308,354" fill="#e0a85a" stroke="${CS}" stroke-width="1"/>`;
+ s+=txt(1141,426,'Filling','lb','middle');
+ return s;}
+
+function artTruck(){const n=P.ntrl;
+ return `<g class="drive"><g transform="translate(1100,492)"><rect x="0" y="40" width="190" height="6" fill="#455a60"/><path d="M0 40V26L11 10H40V40Z" fill="#2d7f7a" stroke="${CS}" stroke-width="1.4"/><polygon points="13,14 38,14 38,27 6,27" fill="#bfe0f2" stroke="#52798a"/><rect x="46" y="2" width="142" height="38" rx="3" fill="none" stroke="#546e75" stroke-width="1.6"/><rect x="50" y="5" width="134" height="15" rx="7.5" fill="url(#gTube)" stroke="${CS}"/><rect x="50" y="22" width="134" height="15" rx="7.5" fill="url(#gTube)" stroke="${CS}"/><path d="M82 5V20M118 5V20M152 5V20M82 22V37M118 22V37M152 22V37" stroke="#7f979d"/><text x="117" y="16" text-anchor="middle" style="font:800 7.5px Inter,Arial,sans-serif;fill:#17323a">BIO CNG 250 BAR</text><text x="117" y="33" text-anchor="middle" style="font:700 7.5px Inter,Arial,sans-serif;fill:#17323a">${n} trailers · ${nf(O.kn,0)} Nm3 net</text><circle cx="22" cy="45" r="7.5" fill="#34464b"/><circle cx="22" cy="45" r="3" fill="#cfd8da"/><circle cx="118" cy="45" r="7.5" fill="#34464b"/><circle cx="118" cy="45" r="3" fill="#cfd8da"/><circle cx="142" cy="45" r="7.5" fill="#34464b"/><circle cx="142" cy="45" r="3" fill="#cfd8da"/><circle cx="168" cy="45" r="7.5" fill="#34464b"/><circle cx="168" cy="45" r="3" fill="#cfd8da"/></g></g>`;}
+
+function artBuy(){let s='';
+ // restoran
+ s+=`<g transform="translate(754,372)"><rect x="6" y="26" width="90" height="104" fill="#f6e6d2" stroke="#8a6b52" stroke-width="1.4"/><rect x="76" y="4" width="11" height="26" fill="#a9684a" stroke="#8a4f33"/><polygon points="0,26 51,0 102,26" fill="#b85c4b" stroke="#8a4f33" stroke-width="1.4"/><rect x="6" y="36" width="90" height="10" fill="url(#pAwn)" stroke="#8a4f33" stroke-width=".8"/><rect x="14" y="52" width="38" height="38" rx="2" fill="#fff3c9" stroke="#52798a"/><ellipse cx="33" cy="80" rx="12" ry="4" fill="#8a9ba0"/>${'<g transform="translate(26,80)">'+flame(0,0,'#3b8bd6',.55)+'</g><g transform="translate(33,80)">'+flame(0,0,'#3b8bd6',.55)+'</g><g transform="translate(40,80)">'+flame(0,0,'#3b8bd6',.55)+'</g>'}<rect x="60" y="64" width="26" height="66" fill="#7a5a45"/><circle cx="82" cy="98" r="1.6" fill="#f4d58a"/><text x="51" y="22" text-anchor="middle" class="bt">EATERY</text></g>`;
+ // tahu tempe
+ s+=`<g transform="translate(866,404)"><rect x="0" y="12" width="80" height="94" fill="#e9eef0" stroke="#5f7a81" stroke-width="1.4"/><polygon points="0,12 14,0 66,0 80,12" fill="#8aa1a8" stroke="#5f7a81"/><rect x="58" y="-12" width="10" height="14" fill="#a9684a" stroke="#8a4f33"/><rect x="8" y="24" width="24" height="18" fill="#bfe0f2" stroke="#52798a"/><rect x="40" y="24" width="24" height="18" fill="#bfe0f2" stroke="#52798a"/><rect x="26" y="58" width="26" height="48" fill="#7a5a45"/><text x="40" y="52" text-anchor="middle" class="bt" style="fill:#41636b">FACTORY</text></g>`;
+ s+=`<g transform="translate(956,456)"><path d="M0 8Q0 40 12 40H44Q56 40 56 8Z" fill="#8a9ba0" stroke="${CS}" stroke-width="1.6"/><ellipse cx="28" cy="8" rx="28" ry="6" fill="#dfe8ea" stroke="${CS}" stroke-width="1.4"/><rect x="2" y="40" width="52" height="4" fill="#546e75"/>${flame(12,52,'#3b8bd6',.7)}${flame(28,52,'#3b8bd6',.8)}${flame(44,52,'#3b8bd6',.7)}<circle class="steam" style="animation-delay:0s" cx="18" cy="2" r="4" fill="#fff" stroke="#c7d6d9" opacity="0"/><circle class="steam" style="animation-delay:1.2s" cx="30" cy="2" r="5" fill="#fff" stroke="#c7d6d9" opacity="0"/><circle class="steam" style="animation-delay:2.2s" cx="42" cy="2" r="4" fill="#fff" stroke="#c7d6d9" opacity="0"/></g>`;
+ // tabung LPG yang digantikan
+ for(let i=0;i<2;i++){const x=1016+i*20;s+=`<g opacity=".55"><rect x="${x}" y="462" width="16" height="34" rx="6" fill="#c9cfd1" stroke="#7f8d92"/><rect x="${x+4}" y="456" width="8" height="6" fill="#7f8d92"/></g>`;}
+ s+=`<path d="M1012 458L1056 500M1056 458L1012 500" stroke="#b4443c" stroke-width="3" stroke-linecap="round"/>`;
+ s+=txt(1034,450,'LPG 12 kg','lb','middle');
+ s+=txt(805,366,'Restaurants and catering','lb','middle')+txt(930,384,'Tofu and tempeh cluster','lb','middle');
+ s+=`<g><rect x="884" y="513" width="116" height="25" rx="4" fill="#d9e6e8" stroke="${CS}" stroke-width="1.4"/><circle cx="898" cy="526" r="8" fill="#fff" stroke="${CS}" stroke-width="1.2"/><path d="M893 529A6 6 0 0 1 903 529" fill="none" stroke="#d17a2c" stroke-width="1.6"/><line x1="898" y1="526" x2="902" y2="522" stroke="#b4443c" stroke-width="1.4"/><text x="910" y="523" style="font:800 8px Inter,Arial,sans-serif;fill:#17323a">PRS</text><text x="910" y="534" style="font:600 7.5px Inter,Arial,sans-serif;fill:#41636b">pressure reduction</text></g>`+PL('M1000 524H1096','gas')+txt(1048,516,'unloading hose','il','middle');
+ s+=`<rect x="752" y="540" width="556" height="8" fill="#9aa9ac"/><line x1="752" y1="544" x2="1308" y2="544" stroke="#fff" stroke-dasharray="8 6"/>`;
+ s+=`<polygon points="1068,544 1082,538 1082,550" fill="#17323a"/>`+txt(1040,536,'to buyers','il','middle');
+ return s;}
+
+function artGen(){let s='';
+ // genset
+ s+=`<g transform="translate(244,392)"><rect x="0" y="84" width="104" height="8" rx="2" fill="#546e75"/><rect x="6" y="38" width="58" height="46" rx="4" fill="url(#gSteel)" stroke="${CS}" stroke-width="1.6"/><rect x="12" y="26" width="10" height="12" fill="#cfdadc" stroke="${CS}"/><rect x="28" y="26" width="10" height="12" fill="#cfdadc" stroke="${CS}"/><rect x="44" y="26" width="10" height="12" fill="#cfdadc" stroke="${CS}"/><rect x="64" y="44" width="34" height="40" rx="5" fill="#3f8f8c" stroke="${CS}" stroke-width="1.6"/><path d="M72 50v28M80 50v28M88 50v28" stroke="#2a6a67"/><rect x="84" y="2" width="8" height="40" fill="#8aa1a8" stroke="${CS}"/><circle class="steam" style="animation-delay:.2s" cx="88" cy="-2" r="4" fill="#e1e6e7" stroke="#aab6b9" opacity="0"/><circle class="steam" style="animation-delay:1.6s" cx="90" cy="-2" r="3.5" fill="#e1e6e7" stroke="#aab6b9" opacity="0"/><polygon points="26,52 36,52 31,62 38,62 24,76 28,66 22,66" fill="#f2c230" stroke="#9a7a10" stroke-width=".8"/></g>`;
+ s+=txt(296,386,'Biogas genset','lb','middle');
+ s+=`<text x="350" y="520" text-anchor="middle" style="font:700 9px Inter,Arial,sans-serif;fill:#8a4f1a;paint-order:stroke;stroke:#f2f8f7;stroke-width:3px">to genset and boiler: ${nf(O.qbgg,0)} Nm3/day</text>`;
+ // boiler
+ s+=cyl(358,408,46,74,9,'url(#gSteel)','')+txt(381,402,'Boiler','lb','middle');
+ s+=`<text transform="translate(386,452) rotate(-90)" class="vt" style="fill:#31525a">HOT WATER</text>`;
+ // flare
+ s+=`<g transform="translate(424,380)"><rect x="9" y="22" width="7" height="82" fill="#8aa1a8" stroke="${CS}"/><rect x="2" y="102" width="21" height="6" fill="#546e75"/>${flame(12.5,24,'#e8892f',1.5)}</g>`+txt(437,372,'Flare','lb','middle');
+ s+=PL('M296 500V484','gas')+PL('M381 500V484','gas')+PL('M436 500V488','gas');
+ s+=ib(330,500,'FT','');
+ return s;}
+
+function artDgs(){let s='';
+ // pres sekrup
+ s+=`<g transform="translate(634,376)"><rect x="0" y="12" width="84" height="32" rx="6" fill="url(#gSteel)" stroke="${CS}" stroke-width="1.6"/><path d="M8 12L16 44M20 12L28 44M32 12L40 44M44 12L52 44M56 12L64 44M68 12L76 44" stroke="#6f8d96" stroke-width="1.4"/><polygon points="40,0 64,0 58,12 46,12" fill="url(#gSteel)" stroke="${CS}"/><rect x="84" y="18" width="20" height="20" rx="3" fill="#4a7c86" stroke="${CS}"/></g>`;
+ s+=txt(636,368,'Screw press','lb','middle');
+ s+=PL('M662 244H686V374','sl');
+ // kue padat jatuh
+ s+=`<path d="M634 400V438" stroke="#9bb78f" stroke-width="5" stroke-dasharray="3 5" class="drop2"/>`;
+ // tumpukan karung pupuk
+ const sk=(x,y)=>`<g transform="translate(${x},${y})"><path d="M2 4Q0 0 6 0H28Q34 0 32 4L34 24Q34 28 30 28H4Q0 28 0 24Z" fill="#e8d6a8" stroke="#8a6f35" stroke-width="1.2"/><path d="M6 0V-3H28V0" stroke="#8a6f35" fill="none"/><text x="17" y="18" text-anchor="middle" style="font:800 6.5px Inter,Arial,sans-serif;fill:#6a5424">FERT.</text></g>`;
+ s+=`<path d="M488 440Q540 420 600 440V446H488Z" fill="#6b5a3a" opacity=".55"/>`;
+ s+=sk(496,452)+sk(532,452)+sk(568,452)+sk(514,480)+sk(550,480);
+ s+=txt(548,372,'Solid organic fertilizer','lb','middle');
+ // lagoon IPAL
+ s+=PL('M686 420V478','sl');
+ s+=`<ellipse cx="686" cy="498" rx="48" ry="18" fill="#8fb7c9" stroke="#5f8da0" stroke-width="1.6"/><ellipse cx="686" cy="498" rx="30" ry="10" fill="none" stroke="#bfe0f2"/><ellipse cx="686" cy="498" rx="14" ry="5" fill="none" stroke="#bfe0f2"/>`;
+ s+=txt(686,526,'WWTP and lagoon','lb','middle');
+ return s;}
+
+
+function tag(x,y,l,c){return `<circle cx="${x}" cy="${y}" r="6.5" fill="#fff" stroke="${c}" stroke-width="1.6"/><text x="${x}" y="${y+2.7}" text-anchor="middle" style="font:800 8px Inter,Arial,sans-serif;fill:${c}">${l}</text>`;}
+function stub(x1,y1,x2,y2,c){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="1.8" stroke-dasharray="3 2"/>`;}
+function artTags(){let s='';const W='#c4513a',E='#9a7a10';
+ // kebocoran dan slip di digester
+ s+=`<g opacity=".9"><ellipse cx="470" cy="58" rx="7" ry="4.5" fill="#e6ebec" stroke="#9aa9ac"/><ellipse cx="464" cy="62" rx="4.5" ry="3.2" fill="#e6ebec" stroke="#9aa9ac"/><ellipse cx="476" cy="63" rx="4.5" ry="3.2" fill="#e6ebec" stroke="#9aa9ac"/></g>`;
+ s+=`<text x="486" y="55" style="font:700 8.5px Inter,Arial,sans-serif;fill:#8a2f27">Leak + slip ${nf(P.leak*100,0)}%</text><text x="486" y="64" style="font:600 7.2px Inter,Arial,sans-serif;fill:#8a2f27">${nf(O.qbg*P.leak,0)} Nm3 biogas/day</text>`;
+ // air panas: boiler ke koil digester
+ s+=stub(404,440,409,440,W)+tag(415,440,'W',W)+stub(480,162,496,162,W)+tag(474,162,'W',W);
+ // listrik: genset ke motor dan pompa
+ s+=stub(342,452,344,452,E)+tag(350,452,'E',E);
+ s+=stub(588,56,598,56,E)+tag(604,56,'E',E);
+ s+=stub(996,170,1001,170,E)+tag(990,170,'E',E);
+ s+=stub(1163,186,1163,190,E)+tag(1163,180,'E',E);
+ // label jalur acuan
+ s+=`<text transform="translate(21,410) rotate(-90)" text-anchor="middle" style="font:700 8px Inter,Arial,sans-serif;fill:#6b5a3a">No project: to landfill</text>`;
+ // dilution water ke tangki slurry
+ s+=PL('M436 52V96','wt')+`<polygon points="431,92 441,92 436,100" fill="#8fc0e3" stroke="${CS}" stroke-width="1"/>`;
+ s+=`<text x="432" y="50" text-anchor="end" style="font:700 8px Inter,Arial,sans-serif;fill:#2d6a8f;paint-order:stroke;stroke:#f2f8f7;stroke-width:2.5px">dilution water ${nf(O.qwat,0)} m3/day</text>`;
+ // dari PRS ke pembeli (tekanan rendah)
+ s+=PL('M884 528H806V503','gas')+PL('M915 513V509','gas')+PL('M992 513V503','gas');
+ return s;}
+function artLegend(){let s='';
+ s+=tag(478,533,'W','#c4513a')+`<text x="489" y="536" style="font:600 8.5px Inter,Arial,sans-serif;fill:#41636b">hot water from boiler to digester coil</text>`;
+ s+=tag(478,546,'E','#9a7a10')+`<text x="489" y="549" style="font:600 8.5px Inter,Arial,sans-serif;fill:#41636b">power from genset to motors and pumps</text>`;
+ return s;}
+
+function artEmi(){let s='';
+ s+=`<path d="M12 536Q50 440 120 446T224 536Z" fill="#b59a6d" stroke="#7d6740" stroke-width="1.4"/><path d="M26 520Q70 468 120 476T210 520" fill="none" stroke="#8d7547" stroke-width="1.2"/><path d="M46 536Q82 496 124 502T196 536" fill="none" stroke="#8d7547" stroke-width="1.2"/>`;
+ const cols=['#3d9a63','#d9a441','#4b86c4','#b4443c','#8a9ba0'];
+ for(let i=0;i<16;i++){const x=40+((i*53)%150),y=476+((i*37)%52);s+=`<rect x="${x}" y="${y}" width="6" height="4" rx="1" fill="${cols[i%5]}" opacity=".85"/>`;}
+ s+=bubbles(80,160,448,5,'bub c');
+ s+=`<g class="co2c"><ellipse cx="116" cy="392" rx="26" ry="12" fill="#e6ebec" stroke="#9aa9ac"/><ellipse cx="96" cy="400" rx="16" ry="9" fill="#e6ebec" stroke="#9aa9ac"/><ellipse cx="138" cy="401" rx="16" ry="9" fill="#e6ebec" stroke="#9aa9ac"/></g>`;
+ s+=`<text x="116" y="396" text-anchor="middle" style="font:800 9px Inter,Arial,sans-serif;fill:#566a70">CH4</text>`;
+ s+=txt(116,372,'Methane released to air','lb','middle')+txt(118,548,'','lb');
+ s+=`<path d="M12 150V470H22" fill="none" stroke="#9aa9ac" stroke-width="2" stroke-dasharray="6 5"/><polygon points="22,465 30,470 22,475" fill="#9aa9ac"/>`;
+ return s;}
+
+function drawPFD(){const s=$('#pfd');
+ const defs=`<defs><linearGradient id="gSteel" x1="0" x2="1"><stop offset="0" stop-color="#b3c5ca"/><stop offset=".35" stop-color="#f6fafa"/><stop offset=".7" stop-color="#d8e4e6"/><stop offset="1" stop-color="#9fb4b9"/></linearGradient><linearGradient id="gTube" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f8f8"/><stop offset=".5" stop-color="#cfdadc"/><stop offset="1" stop-color="#8fa5aa"/></linearGradient><linearGradient id="gMotor" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#58b3ad"/><stop offset="1" stop-color="#2f7f7b"/></linearGradient><linearGradient id="gDome" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe3b5"/><stop offset="1" stop-color="#f0b366"/></linearGradient><linearGradient id="gSlurry" x1="0" x2="1"><stop offset="0" stop-color="#b79f72"/><stop offset=".5" stop-color="#d2bf93"/><stop offset="1" stop-color="#a68c5e"/></linearGradient><linearGradient id="gTankW" x1="0" x2="1"><stop offset="0" stop-color="#8fb9d6"/><stop offset=".5" stop-color="#cfe6f3"/><stop offset="1" stop-color="#7aa9c8"/></linearGradient><pattern id="pDots" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#d9a67a"/><circle cx="2" cy="2" r="1.6" fill="#8a5a3a"/><circle cx="6" cy="6" r="1.6" fill="#8a5a3a"/></pattern><pattern id="pPack" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#eef4f5"/><path d="M0 0L10 10M10 0L0 10" stroke="#8aa1a8" stroke-width="1"/></pattern><pattern id="pAwn" width="14" height="10" patternUnits="userSpaceOnUse"><rect width="7" height="10" fill="#c8483a"/><rect x="7" width="7" height="10" fill="#fff"/></pattern></defs>`;
+ const R1=26,R2=332;
+ const bands=band(8,R1,220,298,'A · ORGANIC WASTE SOURCE')+band(234,R1,220,298,'B · RECEIVING AND PRETREATMENT')+band(460,R1,280,298,'C · BIOGAS PRODUCTION')+band(746,R1,300,298,'D · BIOGAS PURIFICATION')+band(1052,R1,260,298,'E · COMPRESSION')+
+  band(8,R2,220,274,'S3 · BASELINE (NO PROJECT)')+band(234,R2,220,274,'S2 · OWN ENERGY AND FLARE')+band(460,R2,280,274,'S1 · DIGESTATE AND FERTILIZER')+band(746,R2,300,274,'G · B2B BUYERS (DOWNSTREAM)')+band(1052,R2,260,274,'F · STORAGE AND VIRTUAL PIPELINE');
+ const pl=
+  plate(14,272,208,'1. WASTE SOURCE',nf(O.qs,1)+' tons/day','collection '+pc(P.koleksi,0)+' of '+nf(P.food,1)+' t/day')+
+  plate(240,272,208,'2. RECEIVING AND SLURRY',nf(O.wy,0)+' tons/year','service fee '+nf(O.bfee,0)+' IDR million/yr')+
+  plate(466,272,224,'3. ANAEROBIC DIGESTER',nf(O.vol,0)+' m3 · CH4 '+nf(O.qch4,0)+' Nm3/day','raw biogas '+nf(O.qbg,0)+' Nm3/day')+
+  plate(750,272,144,'4. H2S REMOVAL',nf(O.qbgs,0)+' Nm3/day','microaeration + iron sponge')+
+  plate(898,272,144,'5. WATER SCRUBBER',nf(O.qscrh,0)+' Nm3/h','CAPEX '+nf(O.items[3]*P.mult,0)+' IDR million')+
+  plate(1056,272,240,'6. COMPRESSOR 250 BAR',nf(O.qk,0)+' Nm3/day Bio CNG','upgrading + compression '+nf(O.eup,0)+' kWh/day')+
+  plate(1056,556,240,'7. VIRTUAL PIPELINE',nf(O.trip,2)+' loads/day','IDR '+nf(O.cang,0)+'/Nm3 · '+nf(P.jarak,0)+' km')+
+  plate(750,556,292,'8. B2B BUYERS',nf(O.tbg,0)+' LPG 12 kg cylinders/day replaced','IDR '+nf(O.pj,0)+'/Nm3, saving IDR '+nf(O.hemat,0)+'/Nm3 · PRS '+nf(P.nbuy,0)+' sites')+
+  plate(466,556,224,'S1. DIGESTATE AND FERTILIZER',nf(O.digt,0)+' tons/year','revenue '+nf(O.rdig,0)+' IDR million/yr')+
+  plate(240,556,208,'S2. GENSET AND BOILER','O&M '+nf(O.bgen,0)+' IDR million/yr','plant '+nf(P.elis,0)+' kWh/day, '+pc(P.par,2)+' CH4')+
+  plate(14,556,208,'S3. LANDFILL BASELINE','CH4 '+nf(O.e_ch4,0)+' tCO2e/yr','net '+nf(O.e_net,0)+' · MCF '+nf(P.mcf,1));
+ // panel bawah
+ const PY=616;
+ const pbar=(x,y,w,t)=>`<rect x="${x}" y="${y}" width="${w}" height="212" rx="7" fill="#fff" stroke="#cfe0de"/><path d="M${x} ${y+20}V${y+7}Q${x} ${y} ${x+7} ${y}H${x+w-7}Q${x+w} ${y} ${x+w} ${y+7}V${y+20}Z" fill="#12313a"/><text x="${x+10}" y="${y+14}" style="font:800 10px Inter,Arial,sans-serif;fill:#fff;letter-spacing:.5px">${t}</text>`;
+ const rows=[['Lebak generation',nf(P.food,1)+' t/day'],['Collection rate',pc(P.koleksi,0)],['Methane yield',nf(P.yield,0)+' Nm3/ton'],['CH4 in biogas',pc(P.ch4f,0)],['Parasitic energy',pc(P.par,2)],['Operating days',nf(P.hari,0)+' days/yr'],['Haul distance',nf(P.jarak,0)+' km'],['Price discount vs LPG',pc(P.disk,1)],['Digestate sold',pc(P.digs,0)],['Service fee','IDR '+nf(P.fee,0)+'/ton'],['CAPEX multiplier',nf(P.mult,2)+' x'],['Discount rate',pc(P.disc,1)]];
+ let p1=pbar(8,PY,420,'INSTRUMENTS · SIMULATION INPUT VALUES');
+ rows.forEach((r,i)=>{const c=i<6?0:1,k=i%6;const x=18+c*206,y=PY+44+k*27;p1+=`<text x="${x}" y="${y}" class="lb" style="font-size:10.5px">${r[0]}</text><text x="${x+190}" y="${y}" text-anchor="end" class="nv">${r[1]}</text><line x1="${x}" y1="${y+8}" x2="${x+190}" y2="${y+8}" stroke="#e1ecea"/>`;});
+ // neraca produk
+ const X2=436,W2=440;const mx=O.qbg;const bw=v=>Math.max(2,230*v/mx);
+ const bars=[['Raw biogas',O.qbg,'#e0a85a'],['CO2 and others released',O.qbg-O.qch4,'#b9c3c6'],['Methane (CH4)',O.qch4,'#f0c24a'],['Leak and slip (CH4)',O.qlost,'#c76b63'],['Own energy (parasitic)',O.qgen,'#d86a4e'],['Bio CNG delivered',O.qk,'#4f9a6b']];
+ let p2=pbar(X2,PY,W2,'PRODUCT BALANCE · FROM WASTE TO GAS SOLD');
+ p2+=`<text x="${X2+12}" y="${PY+40}" class="nv">${nf(O.qs,1)} tons of waste per day</text><text x="${X2+12}" y="${PY+53}" class="ns">converted to biogas, purified, compressed, then sold (unit Nm3/day)</text>`;
+ bars.forEach((b,i)=>{const y=PY+62+i*22;p2+=`<text x="${X2+12}" y="${y+12}" class="lb" style="font-size:10px">${b[0]}</text><rect x="${X2+148}" y="${y}" width="${bw(b[1])}" height="16" rx="3" fill="${b[2]}" stroke="#41636b" stroke-width=".8"/><text x="${X2+148+bw(b[1])+6}" y="${y+12}" class="nv" style="font-size:10.5px">${nf(b[1],0)}</text>`;});
+ p2+=`<text x="${X2+12}" y="${PY+204}" class="ns" style="font-size:10px">Equivalent to ${nf(O.lpgd,0)} kg LPG per day, or ${nf(O.tbg,0)} cylinders of 12 kg</text>`;
+ // hasil penapisan
+ const st=statusOf();const stc={'b-good':['#dcf2e3','#1f6f3b'],'b-warn':['#fdebd3','#9a5a12'],'b-bad':['#f7dcd9','#8f2f28']}[st[0]];
+ const X3=884,W3=428;let p3=pbar(X3,PY,W3,'SCREENING RESULT · FEASIBILITY STATUS');
+ p3+=`<rect x="${X3+12}" y="${PY+30}" width="${W3-24}" height="28" rx="14" fill="${stc[0]}" stroke="${stc[1]}"/><text x="${X3+W3/2}" y="${PY+49}" text-anchor="middle" style="font:800 12px Inter,Arial,sans-serif;fill:${stc[1]}">${st[1]}</text>`;
+ const hs=[['NPV 10 years','IDR '+nf(O.npv,0)+' million',O.npv>0],['PIR',nf(O.pir,2)+' x',O.pir>1],['IRR',O.irr===null?'n/a':pc(O.irr,1),O.irr>P.disc],['Selling price vs breakeven','IDR '+nf(O.pj,0)+' vs IDR '+nf(O.pimp,0),O.pj>O.pimp],['Total CAPEX','IDR '+nf(O.capex/1000,2)+' billion',null],['Net emissions avoided',nf(O.e_net,0)+' tCO2e/yr',true]];
+ hs.forEach((r,i)=>{const y=PY+84+i*20;const col=r[2]===null?'#17323a':(r[2]?'#1f6f3b':'#b4443c');p3+=`<text x="${X3+14}" y="${y}" class="lb" style="font-size:10.5px">${r[0]}</text><text x="${X3+W3-14}" y="${y}" text-anchor="end" style="font:800 11.5px Inter,Arial,sans-serif;fill:${col}">${r[1]}</text><line x1="${X3+14}" y1="${y+6}" x2="${X3+W3-14}" y2="${y+6}" stroke="#e1ecea"/>`;});
+ const hit=(id,x,y,w,h)=>`<rect class="hit${sel===id?' sel':''}" data-id="${id}" x="${x}" y="${y}" width="${w}" height="${h}" rx="7"/>`;
+ const hits=hit('src',10,50,216,272)+hit('hub',236,50,216,272)+hit('dig',462,50,276,272)+hit('pre',748,50,148,272)+hit('scr',898,50,146,272)+hit('cmp',1054,50,256,272)+hit('trl',1054,356,256,246)+hit('buy',748,356,294,246)+hit('gen',236,356,216,246)+hit('dgs',462,356,276,246)+hit('emi',10,356,216,246);
+ s.innerHTML=defs+`<rect width="1320" height="836" fill="#f8fcfb"/>`+bands+
+  `<path d="M12 150V470H22" fill="none" stroke="#9aa9ac" stroke-width="2" stroke-dasharray="6 5" opacity="0"/>`+
+  PL('M312 198H366','sl')+PL('M442 206H470V230H486','sl')+
+  artSrc()+artHub()+artDig()+artPre()+artScr()+artCmp()+artSto()+artBuy()+artGen()+artDgs()+artEmi()+artTags()+artLegend()+artTruck()+pl+p1+p2+p3+hits;
+ $$('#pfd .hit').forEach(g=>g.addEventListener('click',()=>{sel=g.dataset.id;drawPFD();showNode();}));}
+
+const NODES=[
+{id:'src',t:'1. Waste source',h:'Food waste is collected by the joint BUM Desa from SPPG kitchens, TPS3R, and other source separated points, then trucked to the hub. <b>Formula:</b> Qs = generation × collection rate. The dashed grey line on the left shows the baseline path: without the project, the same waste goes to the landfill.'},
+{id:'hub',t:'2. Receiving and slurry',h:'Waste is weighed on the weighbridge, decontaminated, shredded, and mixed with water into slurry in the tank. The collection cost is paid to the BUM Desa as a service fee per ton.'},
+{id:'dig',t:'3. Anaerobic digester',h:'Volume V = Qs × 1000 × VS / OLR. Methane = Qs × yield. Raw biogas = methane / CH4 fraction. Daily slurry = V / HRT. Dilution water is roughly the difference between slurry and waste mass, usually from recycled digestate liquid. Part of the methane is lost through leakage and slip (λ), and the rest is shared between the genset and boiler (parasitic) and purification. The dome on top is the gas holder, the red coil is the mesophilic heater, and the small blower injects a little air (microaeration) to suppress crude H2S.'},
+{id:'pre',t:'4. H2S removal',h:'Crude H2S is suppressed by microaeration in the digester, then an iron sponge acts as a polishing step so the 250 bar compressor and downstream equipment are protected from corrosion. Both are included in CAPEX.'},
+{id:'scr',t:'5. Water scrubber',h:'A packed column removes CO2 with water circulated by a pump from the water tank. The genset and boiler use raw biogas directly from the digester, so the scrubber only serves the remaining flow (Q_scr). Its cost uses a 0.6 scale rule against a reference size, which is a design assumption that needs a vendor quotation. CAPEX = specific cost (EUR per Nm3/h of biogas) × capacity × exchange rate. This is the most uncertain cost item in the model. The CO2 released is biogenic.'},
+{id:'cmp',t:'6. Dryer and 250 bar compressor',h:'Gas is dried then compressed to 250 bar. Delivered gas = methane × (1 − λ) × (1 − parasitic). Upgrading and compression electricity = kWh per Nm3 × biogas sent to the scrubber. Total plant electricity is larger than the upgrading and compression share because of mixing, pumps, and pretreatment. Energy for the genset and digester heating is already reflected in the parasitic share.'},
+{id:'trl',t:'7. Cascade, filling, and virtual pipeline',h:'Gas is stored in a 250 bar cascade rack then filled into composite trailers (the truck animation shows one delivery cycle). Net per trailer = capacity × payload ratio. Haul cost per Nm3 C = 2 × distance × rate × (1 + increase) / net. The trailer is a pipeline on wheels.'},
+{id:'buy',t:'8. B2B buyers',h:'Restaurants, caterers, and the tofu and tempeh cluster buy Bio CNG below the LPG 12 kg parity value. Selling price = parity value × (1 − discount). The crossed out cylinders show what is replaced. Buyers save the price difference per Nm3. At each buyer site a pressure reduction station (PRS) lowers the gas from 250 bar to stove or boiler pressure, heats the gas, and meters the volume. Its cost per site is included in CAPEX as an assumption, and LPG burners must be converted to methane gas.'},
+{id:'gen',t:'S2. Genset, boiler, and flare',h:'Plant electricity is generated from own biogas, so the power cost is only genset O&M. The boiler heats the digester. The flare burns surplus gas during emergencies or upsets so methane is not released to the air.'},
+{id:'dgs',t:'S1. Digestate and fertilizer',h:'A screw press separates solids (organic fertilizer) from liquid (to the WWTP and lagoon). Part of the liquid can be recycled as dilution water. WWTP operating cost is in OPEX, while the lagoon is treated as part of civil works and needs separate costing. Solid digestate = feed mass × fraction × fraction sold. Revenue = tons × 1000 × price per kg. This decides feasibility: without digestate revenue the NPV becomes strongly negative.'},
+{id:'emi',t:'S3. Baseline emissions and net reduction',h:'Without the project, organic waste decomposes in the landfill and releases methane. Reduction = avoided methane × GWP, plus the LPG CO2 that is displaced, minus project leakage and truck emissions. The net result is shown in the Screening Result panel at the bottom of the diagram.'}];
+let sel='dig';
+function showNode(){const n=NODES.find(x=>x.id===sel);$('#nodeinfo').innerHTML=`<b>${n.t}</b><br>${n.h}`;}
+// ---------- results ----------
+function statusOf(){const ok=O.npv>0;const thin=(O.npv/O.capex)<0.05;return ok?(thin?['b-warn','CONDITIONALLY FEASIBLE (thin positive NPV)']:['b-good','FEASIBLE']):['b-bad','NOT FEASIBLE under these conditions'];}
+function tol(){const dg=solve(P,'digs',0,1.2),mu=solve(P,'mult',0.5,2),ds=solve(P,'disk',0,0.5),fe=solve(P,'fee',0,600000);return{dg,mu,ds,fe};}
+function drawResults(){const st=statusOf();const T=tol();
+ const kv=(a,b,c)=>`<div class="kv"><span>${a}</span><b class="${c||''}">${b}</b></div>`;
+ $('#results').innerHTML=`<span class="badge ${st[0]}">${st[1]}</span>`+
+ kv('Total CAPEX','IDR '+nf(O.capex/1000,2)+' billion')+kv('Bio CNG delivered',nf(O.qk,0)+' Nm3/day')+kv('Selling price','IDR '+nf(O.pj,0)+' /Nm3')+kv('Haul cost','IDR '+nf(O.cang,0)+' /Nm3')+
+ kv('Full year revenue','IDR '+nf(O.rtot,0)+' million')+kv('Full year EBITDA','IDR '+nf(O.ebs,0)+' million')+
+ kv('NPV 10 years','IDR '+nf(O.npv,0)+' million',O.npv>0?'good':'bad')+kv('PIR',nf(O.pir,2)+'×',O.pir>1?'good':'bad')+kv('IRR',O.irr===null?'n/a':pc(O.irr,1),O.irr>P.disc?'good':'bad')+
+ kv('Simple payback',O.pb===null?'> 10 years':nf(O.pb,1)+' years')+kv('Discounted payback',O.pbd===null?'> 10 years':nf(O.pbd,1)+' years')+
+ kv('Breakeven Bio CNG price','IDR '+nf(O.pimp,0)+' /Nm3')+kv('Net emissions avoided',nf(O.e_net,0)+' tCO2e/year','good')+
+ `<div class="grp" style="margin-top:14px">Feasibility limits (NPV equals zero)</div>`+
+ (O.npv>0?chk(true,'Digestate sold at least '+pc(T.dg,1),'Currently '+pc(P.digs,0))+chk(true,'CAPEX may rise by at most '+nf((T.mu/P.mult-1)*100,1)+'%','from the current value')+chk(true,'Price discount at most '+pc(T.ds,1),'from LPG parity value')+chk(true,'BUM Desa service fee at most IDR '+nf(T.fe,0),'per ton')
+ :chk(false,'Digestate sold must be at least '+(T.dg===null?'n/a':pc(T.dg,1)),'Currently '+pc(P.digs,0))+chk(false,'CAPEX must fall by '+(T.mu===null?'n/a':nf((1-T.mu/P.mult)*100,1)+'%'),'from the current value')+chk(false,'Price discount must be at most '+(T.ds===null?'n/a':pc(T.ds,1)),'from LPG parity value')+chk(false,'Service fee must be at most IDR '+(T.fe===null?'n/a':nf(T.fe,0)),'per ton'));}
+function chk(ok,a,b){return `<div class="chk"><i class="${ok?'good':'bad'}">${ok?'✓':'✗'}</i><div><b>${a}</b><br><span style="color:#667f86">${b}</span></div></div>`;}
+// ---------- tables ----------
+function tbl(rows,hdr,cls){return `<table class="t"><tr>${hdr.map(h=>`<th>${h}</th>`).join('')}</tr>${rows.map(r=>`<tr class="${r.tot?'tot':''}">${r.c.map((c,i)=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table>`;}
+function drawTables(){const it=O.items;const names=['Complete digester','Boiler and genset','Microaeration and iron sponge','Water scrubber','Compressor, storage, filling','Composite trailers','Flare, safety, instrumentation','Civil works, roads, weighbridge','Dewatering and dryer','Pressure reduction station and burner conversion at buyers'];
+ let r=names.map((n,i)=>({c:[n,nf(it[i]*P.mult,0)]}));r.push({tot:1,c:['Subtotal',nf(O.isub*P.mult,0)]});r.push({c:['Contingency',nf(O.isub*P.kont*P.mult,0)]});r.push({tot:1,c:['Total CAPEX',nf(O.capex,0)]});
+ $('#capexT').innerHTML=tbl(r,['Component','IDR million']);
+ const o=[['Labor',O.btk],['Maintenance',O.bpem],['Insurance',O.basr],['Administration',P.adm],['Water, chemicals, lab',P.kimia],['WWTP',P.ipal]].map(x=>({c:[x[0],nf(x[1],0)]}));
+ o.push({tot:1,c:['Total fixed cost',nf(O.bfix,0)]});
+ [['Virtual pipeline',O.bang],['BUM Desa service fee',O.bfee],['Genset O&M',O.bgen],['Digestate processing',O.bdig]].forEach(x=>o.push({c:[x[0],nf(x[1],0)]}));
+ o.push({tot:1,c:['Total variable cost',nf(O.bvar,0)]});o.push({c:['Bio CNG revenue',nf(O.rgas,0)]});o.push({c:['Digestate revenue',nf(O.rdig,0)]});o.push({tot:1,c:['Total revenue',nf(O.rtot,0)]});o.push({tot:1,c:['Full year EBITDA',nf(O.ebs,0)]});
+ $('#opexT').innerHTML=tbl(o,['Component','IDR million per year']);
+ const y=[...Array(11).keys()];const row=(n,a,t)=>({tot:t,c:[n,...a.map(v=>nf(v,0))]});
+ $('#cfT').innerHTML=tbl([row('EBITDA',O.eb),row('Net cash flow',O.cf,1),row('Cumulative',O.cum),row('Present value',O.pv),row('Cumulative present value',O.cpv)],['Year',...y]);}
+function mat(rowVals,rowFmt,colVals,colFmt,f,baseR,baseC,head){let h=`<table class="t"><tr><th>${head}</th>${colVals.map(c=>`<th>${colFmt(c)}</th>`).join('')}</tr>`;
+ rowVals.forEach(r=>{h+=`<tr><td><b>${rowFmt(r)}</b></td>`+colVals.map(c=>{const v=f(r,c);return `<td class="${v<0?'neg':'pos'}${(r===baseR&&c===baseC)?' base':''}">${nf(v,0)}</td>`;}).join('')+'</tr>';});return h+'</table>';}
+function drawMatrices(){const discs=[0.10,0.125,0.15,0.20,0.30];
+ $('#m1').innerHTML=mat([25,50,75,100,125,150],x=>x+' km',discs,x=>'discount '+pc(x,1),(r,c)=>npvOf(P,{jarak:r,disk:c}),P.jarak,P.disk,'Distance');
+ $('#m2').innerHTML=mat([0.8,0.9,1.0,1.1,1.2,1.3],x=>nf(x,2)+'× CAPEX',discs,x=>'discount '+pc(x,1),(r,c)=>npvOf(P,{mult:r,disk:c}),P.mult,P.disk,'CAPEX');
+ $('#m3').innerHTML=mat([0.2,0.3,0.4,0.5,0.6,0.8,1.0],x=>pc(x,0)+' digestate sold',[50000,75000,100000,125000,150000],x=>'IDR '+nf(x,0)+'/ton',(r,c)=>npvOf(P,{digs:r,fee:c}),P.digs,P.fee,'Digestate');}
+// ---------- charts ----------
+function cv(id){const c=$(id);const w=c.clientWidth||600;if(!c.dataset.h)c.dataset.h=c.getAttribute('height');const h=parseInt(c.dataset.h);const d=window.devicePixelRatio||1;c.style.height=h+'px';c.width=w*d;c.height=h*d;const x=c.getContext('2d');x.scale(d,d);x.clearRect(0,0,w,h);x.font='11px Inter,Arial';return[x,w,h];}
+function drawCF(){const [x,w,h]=cv('#cfChart');const m={l:50,r:12,t:12,b:26};const vals=[...O.cf,...O.cum];const mx=Math.max(...vals),mn=Math.min(...vals);const sy=v=>m.t+(mx-v)/(mx-mn)*(h-m.t-m.b);const bw=(w-m.l-m.r)/11;
+ x.strokeStyle='#d5e2e0';x.fillStyle='#667f86';for(let i=0;i<=4;i++){const v=mn+(mx-mn)*i/4,yy=sy(v);x.beginPath();x.moveTo(m.l,yy);x.lineTo(w-m.r,yy);x.stroke();x.fillText(nf(v/1000,0)+' B',2,yy+3);}
+ O.cf.forEach((v,i)=>{x.fillStyle=v<0?'#c76b63':'#3f9b8e';const x0=m.l+i*bw+4;x.fillRect(x0,Math.min(sy(v),sy(0)),bw-8,Math.abs(sy(v)-sy(0)));x.fillStyle='#667f86';x.fillText(i,x0+bw/2-8,h-8);});
+ x.strokeStyle='#d17a2c';x.lineWidth=2;x.beginPath();O.cum.forEach((v,i)=>{const xx=m.l+i*bw+bw/2;i?x.lineTo(xx,sy(v)):x.moveTo(xx,sy(v));});x.stroke();x.lineWidth=1;
+ x.fillStyle='#d17a2c';x.fillText('Cumulative (line), B = IDR billion',m.l+6,m.t+10);}
+const TOR=[['yield','Methane yield',85,105,1,0],['par','Parasitic energy',0.28,0.37,100,1],['leak','Methane leakage and slip',0.015,0.05,100,1],['mult','CAPEX multiplier',0.9,1.2,1,2],['digs','Digestate sold',0.3,0.7,100,0],['fee','BUM Desa service fee',50000,150000,1,0],['disk','Price discount',0.10,0.15,100,1],['jarak','Haul distance',50,100,1,0],['escr','Scrubber cost',1500,4000,1,0],['cprs','Buyer PRS station cost',80,300,1,0],['hari','Operating days',300,350,1,0],['digp','Digestate price',1500,2500,1,0]];
+function drawTor(){const [x,w,h]=cv('#tor');const base=O.npv;const rows=TOR.map(t=>{const a=npvOf(P,{[t[0]]:t[2]})-base,b=npvOf(P,{[t[0]]:t[3]})-base;return{n:t[1],a,b,r:Math.abs(a-b),t};}).sort((p,q)=>q.r-p.r);
+ const mx=Math.max(...rows.map(r=>Math.max(Math.abs(r.a),Math.abs(r.b))))*1.05;const cx=190+(w-200)/2,sc=(w-200)/2/mx;const rh=(h-24)/rows.length;
+ rows.forEach((r,i)=>{const y=12+i*rh;x.fillStyle='#31525a';x.textAlign='right';x.fillText(r.n,182,y+rh/2+3);x.textAlign='left';
+  [[r.a,'#3f7fb0'],[r.b,'#d17a2c']].forEach(([v,c])=>{x.fillStyle=c;x.fillRect(v<0?cx+v*sc:cx,y+3,Math.abs(v)*sc,rh-9);});
+  x.fillStyle='#667f86';x.font='10px Inter,Arial';x.fillText(`${nf(r.t[2]*r.t[4],r.t[5])} / ${nf(r.t[3]*r.t[4],r.t[5])}`,cx+(Math.max(r.a,r.b,0))*sc+4,y+rh/2+3);x.font='11px Inter,Arial';});
+ x.strokeStyle='#17323a';x.beginPath();x.moveTo(cx,6);x.lineTo(cx,h-4);x.stroke();x.textAlign='left';}
+function rng(seed){let s=seed>>>0;return()=>{s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+const MC=[['yield',75,95,115],['par',0.28,0.3235,0.38],['leak',0.015,0.03,0.05],['mult',0.9,1.0,1.3],['digs',0.2,0.5,0.8],['fee',60000,100000,150000],['disk',0.10,0.125,0.15],['jarak',50,75,100],['escr',1500,2000,4500],['cprs',80,150,300],['hari',300,330,350],['digp',1500,2000,2500]];
+function tri(u,a,m,b){const f=(m-a)/(b-a);return u<f?a+Math.sqrt(u*(b-a)*(m-a)):b-Math.sqrt((1-u)*(b-a)*(b-m));}
+function runMC(){const r=rng(2026),N=3000,res=[];for(let i=0;i<N;i++){const o={};MC.forEach(m=>o[m[0]]=tri(r(),m[1],m[2],m[3]));res.push(npvOf(P,o));}
+ res.sort((a,b)=>a-b);const q=p=>res[Math.floor(p*(N-1))];const pos=res.filter(v=>v>0).length/N;
+ $('#mcres').innerHTML=`Probability of positive NPV: <b class="${pos>0.5?'good':'bad'}">${pc(pos,1)}</b><br>P10 ${nf(q(.1),0)} · P50 ${nf(q(.5),0)} · P90 ${nf(q(.9),0)} (IDR million) · mean ${nf(res.reduce((a,b)=>a+b,0)/N,0)}`;
+ const [x,w,h]=cv('#hist');const bins=24,mn=res[0],mx=res[N-1],bw=(mx-mn)/bins,cnt=Array(bins).fill(0);res.forEach(v=>cnt[Math.min(bins-1,Math.floor((v-mn)/bw))]++);const cm=Math.max(...cnt);const m={l:8,r:8,t:10,b:30};const bx=(w-m.l-m.r)/bins;
+ cnt.forEach((c,i)=>{const mid=mn+(i+.5)*bw;x.fillStyle=mid<0?'#c76b63':'#3f9b8e';const hh=c/cm*(h-m.t-m.b);x.fillRect(m.l+i*bx+1,h-m.b-hh,bx-2,hh);});
+ const z=m.l+(0-mn)/(mx-mn)*(w-m.l-m.r);x.strokeStyle='#17323a';x.beginPath();x.moveTo(z,m.t);x.lineTo(z,h-m.b);x.stroke();x.fillStyle='#667f86';x.fillText(nf(mn,0),m.l,h-10);x.fillText(nf(mx,0),w-60,h-10);x.fillText('NPV = 0',z+4,m.t+10);}
+function drawEmi(){const sc=[0.4,0.6,0.8].map(m=>compute(Object.assign({},P,{mcf:m})));
+ const r=(n,f,t)=>({tot:t,c:[n,...sc.map(o=>nf(f(o),0))]});
+ $('#emT').innerHTML=tbl([{c:['MCF',...[0.4,0.6,0.8].map(v=>nf(v,1))]},r('Methane prevented (ton CH4)',o=>o.m_ch4),r('CH4 emissions avoided (tCO2e)',o=>o.e_ch4),r('LPG CO2 avoided (tCO2e)',o=>o.e_lpg),r('Gross reduction',o=>o.e_gross,1),r('Project leakage',o=>o.e_leak),r('Truck emissions',o=>o.e_trk),r('NET REDUCTION',o=>o.e_net,1),{c:['Per ton of waste (tCO2e)',...sc.map(o=>nf(o.e_net/o.wy,2))]},{c:['Per Nm3 Bio CNG (kg CO2e)',...sc.map(o=>nf(o.e_net*1000/o.qv,2))]}],['Item','Shallow','Uncategorized','Deep']);
+ const [x,w,h]=cv('#emChart');const parts=[['Landfill methane',O.e_ch4,'#3f9b8e'],['LPG CO2',O.e_lpg,'#d17a2c'],['Leakage',-O.e_leak,'#c76b63'],['Trucks',-O.e_trk,'#8f6bb0']];const mx=Math.max(O.e_ch4,1),bh=44;
+ parts.forEach((p,i)=>{const y=20+i*58,ww=Math.abs(p[1])/mx*(w-290);x.fillStyle=p[2];x.fillRect(150,y,ww,bh);x.fillStyle='#31525a';x.textAlign='right';x.fillText(p[0],142,y+bh/2+4);x.textAlign='left';x.fillText((p[1]<0?'-':'')+nf(Math.abs(p[1]),0)+' tCO2e',156+ww,y+bh/2+4);});
+ const docs=[0.08,0.15,0.20];let h2=`<table class="t"><tr><th>MCF \\ DOC</th>${docs.map(d=>`<th>${nf(d,2)}</th>`).join('')}</tr>`;[0.4,0.6,0.8].forEach(m=>{h2+=`<tr><td><b>${nf(m,1)}</b></td>`+docs.map(d=>`<td class="pos">${nf(compute(Object.assign({},P,{mcf:m,doc:d})).e_net,0)}</td>`).join('')+'</tr>';});$('#emM').innerHTML=h2+'</table>';}
+function drawStatic(){ $('#formulas').textContent=`1. Supply and gas
+Qs = generation × collection rate                 [ton/day]
+Q_CH4 = Qs × yield                                [Nm3 CH4/day]
+Q_biogas = Q_CH4 / f_CH4
+Q_deliv = Q_CH4 × (1 − λ) × (1 − parasitic)       [λ = methane leakage and slip]
+Q_scr = Q_biogas × (1 − λ) × (1 − parasitic)      [genset and boiler use raw biogas]
+V_digester = Qs × 1000 × VS / OLR
+
+2. Distribution and price
+Net trailer = capacity × payload ratio
+C_haul = 2 × D × rate × (1 + increase) / net      [IDR/Nm3]
+P_sell = P_LPG × (1 − discount)
+
+3. CAPEX and OPEX
+CAPEX = [Σ components] × (1 + contingency) × multiplier
+I_scrubber = EUR per (Nm3/h) × Q_biogas per hour × (Q_scr / Q_biogas)^0.6 × exchange rate / 10^6   [0.6 scale rule]
+I_stations = number of buyer sites × pressure reduction station cost per site
+B_fixed = labor + (maintenance + insurance) × CAPEX + administration + chemicals + WWTP
+B_variable = haul + BUM Desa service fee + genset O&M + digestate processing
+
+4. Cash flow
+EBITDA_t = f_t × (Revenue − B_variable) − B_fixed
+CF_0 = −CAPEX ;  CF_t = EBITDA_t
+NPV = Σ CF_t / (1 + r)^t ,  PIR = (NPV + CAPEX) / CAPEX
+IRR: 0 = Σ CF_t / (1 + IRR)^t
+Payback = (t − 1) + |cumulative_(t−1)| / CF_t
+
+5. Breakeven price
+P* = C + [ (CAPEX + A_fixed × B_fixed) / A_var − M_other ] × 10^6 / Q_volume
+
+6. Emissions
+M_CH4 = W × MCF × DOC × DOCf × F × 16/12
+E_CH4 = M_CH4 × GWP
+E_leak = Q_CH4 × days × ρ × λ × GWP / 1000   [leaked gas is also not sold]
+E_LPG = Q_volume × 0.81 × NCV × EF / 10^6
+E_net = E_CH4 + E_LPG − E_leak − E_truck`;
+ const A=[['Lebak food waste generation 186.18 tons/day','Given','Low'],['Collection 20%, yield 95 m3 CH4/ton, CH4 60%','Given','Determines the whole gas volume'],['Parasitic energy about 32% (calibrated 32.35%)','Given, calibrated','State as an estimate, not a precise value'],['Methane leakage and slip 3%, reduces gas sold and adds emissions','Assumption','Medium: delivered Bio CNG is 2,321 Nm3/day, not 2,393 before gas losses'],['Genset and boiler use raw biogas, scrubber only serves the remaining flow, scale exponent 0.6','Design assumption','Medium: needs a vendor quotation and low H2S at the genset'],['Pressure reduction station and burner conversion IDR 150 million per site, 4 buyer sites','Assumption','High: no quotation yet, CAPEX headroom is only about 3%'],['Truck rate IDR 15,000/km, logistics cost up 15%, distance 50 to 100 km','Given','Actual distance not yet measured'],['LPG 12 kg parity value IDR 15,589/Nm3, discount 10 to 15%','Given','Base selling price is 12.5% below parity'],['Operating days 330 and ramp up 70%, 90%','Assumption','Needs pilot data'],['Digester IDR 1.5 million/m3','Assumption','Medium'],['Water scrubber EUR 2,000 per Nm3/h','Assumption','High: literature range 1,490 to 5,820, tends to be optimistic'],['Digestate 19.8% of feed mass, 50% sold, IDR 2,000/kg','Assumption and given price','Very high: NPV is zero at about 43.6% sold'],['BUM Desa service fee IDR 100,000/ton','Assumption','High: breakeven at about IDR 120,400/ton'],['MCF 0.4 to 0.8 and DOC 0.15','Standard parameters, site not measured','High for emissions']];
+ $('#asmT').innerHTML=tbl(A.map(a=>({c:a})),['Input','Status','Risk']).replace(/text-align:right/g,'');
+ $('#lim').innerHTML='<ul style="line-height:1.8;font-size:12px"><li>Cash flow is before tax, with no working capital, salvage value, or inflation.</li><li>Land is assumed to be granted by the local government. Permitting is not yet included.</li><li>Other fixed costs (equipment, labor) do not adjust to scale automatically when collection is changed, so the conservative and optimistic scenarios are illustrative only.</li><li>Pressure reduction station cost and the number of buyer sites are still assumptions. Replace them with vendor quotations and buyer survey results.</li><li>B2B buyers have not been surveyed and the Lebak digestate market has not been validated.</li><li>The lagoon and WWTP have no separate CAPEX line: only WWTP operating cost and a lump sum for civil works are included.</li><li>There is no Indonesian biomethane standard and local TS, VS, and BMP data are not yet available.</li><li>Emissions use standard parameters, not site measurements.</li></ul>';}
+// ---------- wiring ----------
+const PRE={dasar:{},kons:{koleksi:0.10,yield:75,par:0.36},opt:{koleksi:0.30,yield:115,par:0.28}};
+function update(fromInput){O=compute(P);drawPFD();showNode();drawResults();drawTables();drawMatrices();drawEmi();drawCF();drawTor();if(!fromInput)syncInputs();else syncInputs();}
+$('#preset').addEventListener('change',e=>{P=Object.assign({},DEF,PRE[e.target.value]);syncInputs();update();});
+$('#reset').addEventListener('click',()=>{P=Object.assign({},DEF);$('#preset').value='dasar';syncInputs();update();});
+$('#anim').addEventListener('click',e=>{const s=$('#stage');s.classList.toggle('paused');e.target.textContent=s.classList.contains('paused')?'Resume flow animation':'Pause flow animation';});
+$('#mc').addEventListener('click',runMC);
+$$('#tabbar button').forEach(b=>b.addEventListener('click',()=>{$$('#tabbar button').forEach(x=>x.classList.toggle('on',x===b));$$('.view').forEach(v=>v.classList.toggle('on',v.id===b.dataset.tab));setTimeout(()=>{drawCF();drawTor();drawEmi();},30);}));
+window.addEventListener('resize',()=>{drawCF();drawTor();drawEmi();});
+bind();syncInputs();drawStatic();update();
+</script></body></html>
